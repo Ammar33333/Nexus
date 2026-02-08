@@ -1,7 +1,175 @@
 
-1) WORKFLOW1:
+1) WORKFLOW1: Intelligent Advisor Matching
 
+   Title: Smart Supervisor-Student Matching Workflow
 
+   Description:
+   This workflow covers the end-to-end process by which a student finds and
+   requests a suitable FYP supervisor through the platform's intelligent
+   matching system. It includes profile setup, preference input, algorithm-
+   driven recommendations, request submission, and supervisor acceptance
+   or rejection.
+
+   Actors:
+   - Student (primary)
+   - Supervisor
+   - System (matching algorithm)
+
+   Preconditions:
+   - Student has registered and logged into the platform.
+   - Supervisors have registered, completed their profiles (expertise areas,
+     research interests, available slots), and are marked as available.
+   - Administrator has configured the current academic session/semester.
+
+   Workflow Steps:
+
+   Step 1 - Student Completes Project Profile
+     1.1  Student logs in and navigates to "Start New Project" from the dashboard.
+     1.2  Student fills in the Project Interest Form:
+          - Project title (working title)
+          - Project domain (e.g., AI/ML, Web Development, Cybersecurity,
+            Data Science, IoT, Mobile Development, etc.) — selected from
+            a predefined list with option to add custom tags.
+          - Required skills/technologies (e.g., Python, React, TensorFlow,
+            etc.) — multi-select with autocomplete.
+          - Brief project description (150–500 words).
+          - Preferred supervision style (e.g., weekly meetings, bi-weekly
+            meetings, flexible/as-needed).
+     1.3  Student submits the form. System validates all required fields and
+          saves the project profile.
+
+   Step 2 - System Generates Supervisor Recommendations
+     2.1  Upon submission, the system runs the matching algorithm which
+          evaluates supervisors based on:
+          - Domain alignment: How closely the supervisor's research areas
+            match the student's selected project domain (weighted highest).
+          - Skill overlap: Percentage of required skills that fall within the
+            supervisor's listed expertise.
+          - Availability: Number of remaining open slots the supervisor has
+            for the current semester (supervisors at full capacity are excluded).
+          - Workload balance: Preference given to supervisors with fewer
+            current advisees to promote fair distribution.
+          - Supervision style compatibility: Match between student preference
+            and supervisor's stated availability pattern.
+     2.2  The system generates a ranked list of recommended supervisors,
+          each with a match score (displayed as a percentage or rating).
+
+   Step 3 - Student Reviews Recommendations
+     3.1  Student is presented with the "Recommended Supervisors" page
+          showing a ranked list of matched supervisors. For each supervisor,
+          the following is displayed:
+          - Supervisor name and department
+          - Profile photo
+          - Research interests and expertise areas
+          - Match score with breakdown (domain match %, skill overlap %,
+            availability status)
+          - Number of available slots remaining
+          - Past project titles supervised (if any)
+          - Average student rating (from previous advisees, if available)
+     3.2  Student can click on any supervisor to view their full profile,
+          including a detailed bio, published work, and list of current/past
+          FYP students.
+     3.3  Student can filter and sort the list by:
+          - Match score (default: highest first)
+          - Domain
+          - Available slots
+          - Department
+     3.4  Student can also use a manual search bar to search for a specific
+          supervisor by name or expertise keyword if they want to go beyond
+          the recommendations.
+
+   Step 4 - Student Sends Supervision Request
+     4.1  Student selects a preferred supervisor and clicks "Request Supervisor."
+     4.2  A request form appears where the student provides:
+          - A brief message to the supervisor explaining why they are a
+            good fit (required, 50–300 words).
+          - Attached project interest form summary (auto-populated from
+            Step 1).
+     4.3  Student submits the request. The system:
+          - Records the request with status "Pending."
+          - Sends an in-app notification and email alert to the supervisor.
+          - Displays a confirmation message to the student: "Your request
+            has been sent. You will be notified once the supervisor responds."
+     4.4  Student may send up to 3 supervision requests simultaneously to
+          different supervisors (configurable by admin). The system enforces
+          this limit and displays remaining request count.
+
+   Step 5 - Supervisor Reviews and Responds to Request
+     5.1  Supervisor logs in and sees new request(s) on their dashboard
+          under "Pending Requests."
+     5.2  Supervisor clicks on a request to view:
+          - Student's name, program, and academic details
+          - Project title, domain, description, and required skills
+          - Match score and compatibility breakdown
+          - Student's message/motivation
+     5.3  Supervisor chooses one of the following actions:
+          a) Accept — Supervisor agrees to supervise the student.
+             - System updates the request status to "Accepted."
+             - Student receives an in-app notification and email:
+               "Your supervision request has been accepted by [Supervisor Name]."
+             - All other pending requests from this student to other
+               supervisors are automatically withdrawn and those supervisors
+               are notified.
+             - Supervisor's available slot count decreases by one.
+             - The student-supervisor pairing is recorded in the system.
+          b) Reject — Supervisor declines the request.
+             - Supervisor provides a brief reason (optional but encouraged).
+             - System updates the request status to "Rejected."
+             - Student receives a notification: "Your request to [Supervisor
+               Name] was not accepted. Reason: [if provided]. You may send
+               a new request to another supervisor."
+             - Student's active request count is decremented, allowing them
+               to send a new request.
+          c) Request More Info — Supervisor asks for clarification.
+             - Supervisor types a message/question for the student.
+             - System updates request status to "Info Requested."
+             - Student receives a notification and can reply via the
+               platform's messaging interface.
+             - Once the student responds, the supervisor can then Accept
+               or Reject.
+
+   Step 6 - Matching Finalized
+     6.1  Once a supervisor accepts, the student-supervisor pair is formally
+          established in the system.
+     6.2  Both parties are redirected to a shared "Project Workspace" where
+          they can:
+          - Begin the proposal submission workflow (Workflow 2).
+          - View each other's contact details and schedule.
+          - Access a shared timeline and milestone tracker.
+     6.3  The administrator dashboard is updated to reflect the new pairing
+          and current allocation statistics.
+
+   Postconditions:
+   - Student is matched with a supervisor and the pairing is recorded.
+   - Supervisor's available capacity is updated.
+   - Both parties have access to the shared project workspace.
+   - All other pending requests by the student are withdrawn.
+   - The system's workload distribution statistics are updated.
+
+   Exception/Alternate Flows:
+
+   E1 - No Suitable Matches Found:
+        If the algorithm finds no supervisors with a match score above the
+        minimum threshold, the student is shown a message: "No strong matches
+        found. Try broadening your project domain or adjusting required skills."
+        The student can edit their project profile and re-run matching.
+
+   E2 - All Requests Rejected:
+        If all of the student's requests are rejected, the system notifies
+        the student and suggests re-running the matching algorithm or
+        contacting the department administrator for manual assignment.
+
+   E3 - Supervisor Reaches Full Capacity Mid-Process:
+        If a supervisor's slots fill up while a request is pending, the
+        system automatically withdraws the pending request and notifies
+        the student: "[Supervisor Name] is no longer available. Please
+        select another supervisor from your recommendations."
+
+   E4 - Request Timeout:
+        If a supervisor does not respond within a configurable time period
+        (default: 7 days), the system sends a reminder. After a second
+        period (default: 3 more days), the request is auto-expired and
+        the student is notified to select another supervisor.
 
 
 2) WORKFLOW2
