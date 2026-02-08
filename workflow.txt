@@ -11,6 +11,122 @@
 
 3) WORKFLOW3:
 
+WORKFLOW3: Milestone Tracking, Meetings, Evaluation & Final Grading
+
+Title: Integrated Milestone Tracking & Rubric-Based Evaluation Workflow
+
+Description:
+This workflow covers how the platform manages project progress after proposal approval: defining milestones, tracking submissions and meetings, collecting supervisor evaluations using rubrics, and producing final grading/analytics.
+
+Actors:
+Student (primary)
+Supervisor
+Administrator
+System (tracker + notifications + analytics)
+
+Preconditions:
+Student-supervisor pairing exists (Workflow 1 completed).
+Proposal is Admin Approved (Workflow 2 completed).
+Admin has configured:
+Milestone structure (or allowed custom milestones)
+Evaluation rubrics + weightings
+Submission deadlines and grading policy
+
+Workflow Steps
+
+Step 1 — System Creates Project Timeline (Milestone Plan)
+1.1 After proposal approval, system opens Milestones tab in Project Workspace.
+1.2 System either:
+Option A (Standardized): Preloads department milestone template (e.g., Proposal, Literature Review, Prototype, Mid Review, Final Report, Viva).
+Option B (Custom): Allows supervisor/admin to create milestones manually.
+1.3 Each milestone includes:
+Title
+Description / deliverables
+Due date
+Required submission type (file upload/link/text)
+Evaluation rubric (if applicable)
+1.4 Student and supervisor receive notification:
+“Project milestones have been activated.”
+
+Step 2 — Student Works & Submits Milestone Deliverables
+2.1 Student opens the active milestone and clicks Submit Deliverable.
+2.2 Student uploads files and/or enters:
+Deliverable link (Git repo, demo link)
+Notes / progress summary
+2.3 System validates submission format and timestamps it:
+Status: Submitted
+2.4 System notifies the supervisor:
+“Milestone submission received for [Milestone Name].”
+
+Step 3 — Supervisor Reviews Progress & Logs Feedback
+3.1 Supervisor opens milestone submission.
+3.2 Supervisor can:
+Give quick feedback (comments)
+Request resubmission (if policy allows)
+Mark as accepted for that milestone
+3.3 System updates milestone state:
+Accepted / Needs Changes / Overdue (auto)
+3.4 Feedback is stored as milestone history.
+
+Step 4 — Meeting Scheduling & Attendance Log
+4.1 Student or supervisor clicks Schedule Meeting inside workspace.
+4.2 System shows available slots (simple availability input or calendar integration if later added).
+4.3 Meeting is created with:
+Date/time
+Agenda
+Mode (in-person/online)
+4.4 System sends notifications to both parties.
+4.5 After meeting, supervisor (or both) logs:
+Attendance
+Summary notes
+Action items
+Next meeting date suggestion
+4.6 System links meeting notes to timeline for transparency.
+
+Step 5 — Rubric-Based Evaluations (Midpoints and Final)
+5.1 For evaluation milestones (e.g., Mid Review / Final), supervisor opens Evaluate.
+5.2 System displays rubric with criteria, levels, and weights (configured by admin).
+5.3 Supervisor enters:
+Scores per criterion
+Strengths / weaknesses comments
+Recommended next steps
+5.4 System calculates:
+Milestone grade (if weighted)
+Running total (if continuous assessment is enabled)
+5.5 Student receives:
+Score + rubric breakdown + written feedback
+
+Step 6 — Admin Oversight & Final Grading
+6.1 Admin dashboard shows:
+Project progress status (on-track / at-risk / overdue)
+Supervisor workload + evaluation completion rates
+Grade distribution analytics
+6.2 Admin can:
+Request justification for extreme grades (optional policy)
+Lock grades after submission deadline
+Generate final grade reports
+6.3 System finalizes:
+Final grade (overall)
+Completed rubric records
+Project completion status: Completed / Incomplete / Deferred
+
+Postconditions
+Milestones, submissions, meeting logs, and evaluations are recorded.
+Student receives structured feedback continuously.
+Rubric-based grading is standardized and auditable.
+Admin has visibility into allocations, progress, and outcomes.
+
+Exception / Alternate Flows
+E1 — Missed Milestone Deadline
+System marks milestone as Overdue and notifies student + supervisor.
+Admin is notified if overdue exceeds a threshold (e.g., 7 days).
+E2 — Resubmission Allowed
+If supervisor marks “Needs Changes,” system reopens milestone with a new due date window (policy-configurable).
+E3 — Supervisor Unavailable / Reassignment
+If supervisor becomes inactive, admin reassigns supervisor.
+System preserves all milestone/evaluation history and transfers workspace access.
+E4 — Academic Misconduct / Plagiarism Flag (Optional Module)
+If plagiarism tool flags a deliverable, system locks it for admin review before evaluation.
 
 
 
