@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, FileText, Send } from 'lucide-react';
+import { Bell, FileText, Send, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ export default function Navbar() {
   const { user, logout, isAuthenticated, loadFromStorage } = useAuthStore();
   const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [hasWorkspace, setHasWorkspace] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
   useEffect(() => {
     loadFromStorage();
@@ -37,10 +37,15 @@ export default function Navbar() {
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'STUDENT') return;
     api
-      .get('/requests/student')
+      .get('/projects/me')
       .then((res) => {
-        const requests = res.data.data || [];
-        setHasWorkspace(requests.some((r: { status: string }) => r.status === 'ACCEPTED'));
+        const projects = res.data.data || [];
+        const withWorkspace = projects.find(
+          (p: { workspace?: { id: string } }) => p.workspace
+        );
+        if (withWorkspace) {
+          setWorkspaceId(withWorkspace.workspace.id);
+        }
       })
       .catch(() => {});
   }, [isAuthenticated, user?.role]);
@@ -84,8 +89,8 @@ export default function Navbar() {
             </Link>
           )}
 
-          {user?.role === 'STUDENT' && hasWorkspace && (
-            <Link href="/workspace">
+          {user?.role === 'STUDENT' && workspaceId && (
+            <Link href={`/workspace/${workspaceId}`}>
               <Button variant="ghost" size="sm" className="gap-1.5">
                 <FileText className="h-4 w-4" />
                 Workspace
@@ -94,10 +99,27 @@ export default function Navbar() {
           )}
 
           {user?.role === 'SUPERVISOR' && (
-            <Link href="/supervisor/requests">
+            <>
+              <Link href="/supervisor/requests">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Send className="h-4 w-4" />
+                  Requests
+                </Button>
+              </Link>
+              <Link href="/supervisor/proposals">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <ClipboardList className="h-4 w-4" />
+                  Proposals
+                </Button>
+              </Link>
+            </>
+          )}
+
+          {user?.role === 'ADMIN' && (
+            <Link href="/admin/proposals">
               <Button variant="ghost" size="sm" className="gap-1.5">
-                <Send className="h-4 w-4" />
-                Requests
+                <ClipboardList className="h-4 w-4" />
+                Proposals
               </Button>
             </Link>
           )}
