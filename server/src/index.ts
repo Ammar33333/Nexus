@@ -14,6 +14,10 @@ import matchingRoutes from './routes/matching';
 import requestRoutes from './routes/request';
 import proposalRoutes from './routes/proposal';
 import workspaceRoutes from './routes/workspace';
+import milestoneRoutes from './routes/milestone';
+import meetingRoutes from './routes/meeting';
+import evaluationRoutes from './routes/evaluation';
+import adminDashboardRoutes from './routes/adminDashboard';
 import { startCronJobs } from './services/cronService';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -42,6 +46,10 @@ app.use('/api/matching', matchingRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api', proposalRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api', milestoneRoutes);
+app.use('/api', meetingRoutes);
+app.use('/api', evaluationRoutes);
+app.use('/api/admin', adminDashboardRoutes);
 
 app.use(errorHandler);
 

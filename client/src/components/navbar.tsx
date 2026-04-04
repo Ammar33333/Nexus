@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, FileText, Send, ClipboardList } from 'lucide-react';
+import { Bell, FileText, Send, ClipboardList, Settings, Layout, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -112,16 +112,36 @@ export default function Navbar() {
                   Proposals
                 </Button>
               </Link>
+              <Link href="/supervisor/evaluations">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Star className="h-4 w-4" />
+                  Evaluations
+                </Button>
+              </Link>
             </>
           )}
 
           {user?.role === 'ADMIN' && (
-            <Link href="/admin/proposals">
-              <Button variant="ghost" size="sm" className="gap-1.5">
-                <ClipboardList className="h-4 w-4" />
-                Proposals
-              </Button>
-            </Link>
+            <>
+              <Link href="/admin/proposals">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <ClipboardList className="h-4 w-4" />
+                  Proposals
+                </Button>
+              </Link>
+              <Link href="/admin/settings">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Button>
+              </Link>
+              <Link href="/admin/templates">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Layout className="h-4 w-4" />
+                  Templates
+                </Button>
+              </Link>
+            </>
           )}
         </div>
         <div className="flex items-center gap-3">

@@ -118,6 +118,52 @@ async function processFullSupervisors() {
   }
 }
 
+async function processOverdueMilestones() {
+  const now = new Date();
+
+  const overdueMilestones = await prisma.milestone.findMany({
+    where: {
+      status: 'NOT_SUBMITTED',
+      dueDate: { lt: now },
+    },
+    include: {
+      workspace: {
+        include: {
+          student: { include: { user: true } },
+          supervisor: { include: { user: true } },
+        },
+      },
+    },
+  });
+
+  for (const milestone of overdueMilestones) {
+    await prisma.milestone.update({
+      where: { id: milestone.id },
+      data: { status: 'OVERDUE' },
+    });
+
+    await createNotification(
+      milestone.workspace.student.user.id,
+      'MILESTONE_OVERDUE',
+      'Milestone Overdue',
+      `Your milestone "${milestone.title}" is overdue. The due date was ${milestone.dueDate.toLocaleDateString()}.`,
+      { milestoneId: milestone.id }
+    );
+
+    await createNotification(
+      milestone.workspace.supervisor.user.id,
+      'MILESTONE_OVERDUE',
+      'Student Milestone Overdue',
+      `${milestone.workspace.student.user.name}'s milestone "${milestone.title}" is overdue.`,
+      { milestoneId: milestone.id }
+    );
+  }
+
+  if (overdueMilestones.length > 0) {
+    console.log(`[cron] Flagged ${overdueMilestones.length} milestone(s) as overdue`);
+  }
+}
+
 export function startCronJobs() {
   cron.schedule('0 2 * * *', async () => {
     console.log('[cron] Running daily maintenance tasks...');
@@ -125,6 +171,7 @@ export function startCronJobs() {
       await processReminders();
       await processExpirations();
       await processFullSupervisors();
+      await processOverdueMilestones();
       console.log('[cron] Daily maintenance complete');
     } catch (error) {
       console.error('[cron] Error during maintenance:', error);

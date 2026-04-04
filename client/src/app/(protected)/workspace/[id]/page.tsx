@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import MilestonesTab from '@/components/milestones-tab';
+import MeetingsTab from '@/components/meetings-tab';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { getStatusConfig, formatDate } from '@/lib/proposal-utils';
-import { Plus, Eye, Edit, Clock, FileText } from 'lucide-react';
+import { Plus, Eye, Edit, FileText } from 'lucide-react';
 
 interface ProposalVersion {
   id: string;
@@ -47,16 +49,67 @@ interface Workspace {
   proposals: Proposal[];
 }
 
+interface Milestone {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  status: string;
+  submission?: {
+    id: string;
+    fileUrl?: string;
+    repoLink?: string;
+    notes?: string;
+    submittedAt: string;
+  };
+  feedback?: string;
+}
+
+interface Meeting {
+  id: string;
+  date: string;
+  time?: string;
+  agenda: string;
+  mode: string;
+  meetingLink?: string;
+  notes?: string;
+  actionItems?: string;
+  status: string;
+}
+
 export default function WorkspacePage() {
   const params = useParams();
   const workspaceId = params.id as string;
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchMilestones = useCallback(() => {
     api
-      .get(`/workspaces/${workspaceId}`)
-      .then((res) => setWorkspace(res.data.data))
+      .get(`/workspaces/${workspaceId}/milestones`)
+      .then((res) => setMilestones(res.data.data || []))
+      .catch(() => {});
+  }, [workspaceId]);
+
+  const fetchMeetings = useCallback(() => {
+    api
+      .get(`/workspaces/${workspaceId}/meetings`)
+      .then((res) => setMeetings(res.data.data || []))
+      .catch(() => {});
+  }, [workspaceId]);
+
+  useEffect(() => {
+    Promise.all([
+      api.get(`/workspaces/${workspaceId}`),
+      api.get(`/workspaces/${workspaceId}/milestones`).catch(() => ({ data: { data: [] } })),
+      api.get(`/workspaces/${workspaceId}/meetings`).catch(() => ({ data: { data: [] } })),
+    ])
+      .then(([wsRes, msRes, mtRes]) => {
+        setWorkspace(wsRes.data.data);
+        setMilestones(msRes.data.data || []);
+        setMeetings(mtRes.data.data || []);
+      })
       .catch(() => toast.error('Failed to load workspace'))
       .finally(() => setLoading(false));
   }, [workspaceId]);
@@ -303,25 +356,21 @@ export default function WorkspacePage() {
 
         <TabsContent value={1}>
           <div className="mt-4">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Clock className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-lg font-medium">Milestones</p>
-                <p className="text-muted-foreground mt-1">Coming soon</p>
-              </CardContent>
-            </Card>
+            <MilestonesTab
+              workspaceId={workspaceId}
+              milestones={milestones}
+              onRefresh={fetchMilestones}
+            />
           </div>
         </TabsContent>
 
         <TabsContent value={2}>
           <div className="mt-4">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Clock className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-lg font-medium">Meetings</p>
-                <p className="text-muted-foreground mt-1">Coming soon</p>
-              </CardContent>
-            </Card>
+            <MeetingsTab
+              workspaceId={workspaceId}
+              meetings={meetings}
+              onRefresh={fetchMeetings}
+            />
           </div>
         </TabsContent>
       </Tabs>
