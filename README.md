@@ -17,7 +17,7 @@ docker-compose up --build
 
 # Access the application
 # Frontend: http://localhost:3000
-# Backend:  http://localhost:5000/api/health
+# Backend:  http://localhost:5001/api/health
 ```
 
 ## Default Accounts (after seeding)
