@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell } from 'lucide-react';
+import { Bell, FileText, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ export default function Navbar() {
   const { user, logout, isAuthenticated, loadFromStorage } = useAuthStore();
   const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasWorkspace, setHasWorkspace] = useState(false);
 
   useEffect(() => {
     loadFromStorage();
@@ -25,10 +26,24 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    api.get('/notifications').then((res) => {
-      setUnreadCount(res.data.data.unreadCount);
-    }).catch(() => {});
+    api
+      .get('/notifications')
+      .then((res) => {
+        setUnreadCount(res.data.data.unreadCount);
+      })
+      .catch(() => {});
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'STUDENT') return;
+    api
+      .get('/requests/student')
+      .then((res) => {
+        const requests = res.data.data || [];
+        setHasWorkspace(requests.some((r: { status: string }) => r.status === 'ACCEPTED'));
+      })
+      .catch(() => {});
+  }, [isAuthenticated, user?.role]);
 
   const handleLogout = () => {
     logout();
@@ -48,12 +63,44 @@ export default function Navbar() {
     <nav className="border-b bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-4">
-          <Link href={dashboardPath} className="font-bold text-lg border px-4 py-1">
+          <Link
+            href={dashboardPath}
+            className="font-bold text-lg border px-4 py-1"
+          >
             NEXUS
           </Link>
           <Link href={dashboardPath}>
-            <Button variant="outline" size="sm">Dashboard</Button>
+            <Button variant="outline" size="sm">
+              Dashboard
+            </Button>
           </Link>
+
+          {user?.role === 'STUDENT' && (
+            <Link href="/requests">
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <Send className="h-4 w-4" />
+                My Requests
+              </Button>
+            </Link>
+          )}
+
+          {user?.role === 'STUDENT' && hasWorkspace && (
+            <Link href="/workspace">
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <FileText className="h-4 w-4" />
+                Workspace
+              </Button>
+            </Link>
+          )}
+
+          {user?.role === 'SUPERVISOR' && (
+            <Link href="/supervisor/requests">
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <Send className="h-4 w-4" />
+                Requests
+              </Button>
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <Link href="/notifications" className="relative">
@@ -72,7 +119,9 @@ export default function Navbar() {
               {user?.role}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="font-medium">{user?.name}</DropdownMenuItem>
+              <DropdownMenuItem className="font-medium">
+                {user?.name}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
