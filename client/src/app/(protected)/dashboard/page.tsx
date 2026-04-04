@@ -8,7 +8,15 @@ import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { Plus, Eye, CheckCircle, Clock, Send } from 'lucide-react';
+import { Plus, Eye, CheckCircle, Clock, Send, Search } from 'lucide-react';
+
+interface ProjectProfile {
+  id: string;
+  title: string;
+  domain: string;
+  skills: string[];
+  createdAt: string;
+}
 
 interface Notification {
   id: string;
@@ -43,6 +51,7 @@ const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'des
 export default function StudentDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [requests, setRequests] = useState<DashboardRequest[]>([]);
+  const [projects, setProjects] = useState<ProjectProfile[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
 
   useEffect(() => {
@@ -60,6 +69,13 @@ export default function StudentDashboard() {
       })
       .catch(() => {})
       .finally(() => setLoadingRequests(false));
+
+    api
+      .get('/projects/me')
+      .then((res) => {
+        setProjects(res.data.data || []);
+      })
+      .catch(() => {});
   }, []);
 
   const timeAgo = (date: string) => {
@@ -140,21 +156,91 @@ export default function StudentDashboard() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Start New Project</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>My Projects</CardTitle>
+                {!acceptedRequest && (
+                  <Link href="/projects/new">
+                    <Button size="sm">
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Project
+                    </Button>
+                  </Link>
+                )}
               </CardHeader>
               <Separator />
               <CardContent className="pt-4">
-                <p className="text-muted-foreground mb-4">
-                  Begin your final year project by filling out your project
-                  interests and finding a suitable supervisor.
-                </p>
-                <Link href="/projects/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Start New Project
-                  </Button>
-                </Link>
+                {projects.length === 0 ? (
+                  <div>
+                    <p className="text-muted-foreground mb-4">
+                      Begin your final year project by filling out your project
+                      interests and finding a suitable supervisor.
+                    </p>
+                    <Link href="/projects/new">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Start New Project
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {projects.map((project) => {
+                      const projectRequests = requests.filter(
+                        (r) => r.projectProfile.id === project.id
+                      );
+                      const hasAccepted = projectRequests.some(
+                        (r) => r.status === 'ACCEPTED'
+                      );
+                      const pendingCount = projectRequests.filter(
+                        (r) => r.status === 'PENDING' || r.status === 'INFO_REQUESTED'
+                      ).length;
+
+                      return (
+                        <div
+                          key={project.id}
+                          className="border rounded-lg p-4 space-y-3"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-medium">{project.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {project.domain}
+                              </p>
+                            </div>
+                            {hasAccepted ? (
+                              <Badge variant="default">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Matched
+                              </Badge>
+                            ) : pendingCount > 0 ? (
+                              <Badge variant="secondary">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {pendingCount} Pending
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">No Active Requests</Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {project.skills.map((s) => (
+                              <Badge key={s} variant="secondary" className="text-xs">
+                                {s}
+                              </Badge>
+                            ))}
+                          </div>
+                          {!hasAccepted && (
+                            <Link href={`/matching/${project.id}`}>
+                              <Button variant="outline" size="sm" className="w-full">
+                                <Search className="mr-2 h-4 w-4" />
+                                Find Supervisors
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

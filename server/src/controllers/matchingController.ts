@@ -27,7 +27,18 @@ export const getMatches = async (req: AuthRequest, res: Response, next: NextFunc
 
     const matches = await runMatching(projectId);
 
-    res.json({ success: true, data: matches });
+    res.json({
+      success: true,
+      data: {
+        matches,
+        project: {
+          id: project.id,
+          title: project.title,
+          domain: project.domain,
+          skills: project.skills,
+        },
+      },
+    });
   } catch (error) {
     next(error);
   }
