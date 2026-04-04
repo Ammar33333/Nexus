@@ -1,0 +1,364 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  SUPERVISOR
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  INFO_REQUESTED
+  WITHDRAWN
+  EXPIRED
+}
+
+enum ProposalStatus {
+  DRAFT
+  SUBMITTED
+  REVISIONS_REQUESTED
+  SUPERVISOR_APPROVED
+  ADMIN_REVISIONS_REQUESTED
+  ADMIN_APPROVED
+  REJECTED
+}
+
+enum MilestoneStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  NEEDS_CHANGES
+  ACCEPTED
+  OVERDUE
+}
+
+enum MeetingMode {
+  ONLINE
+  IN_PERSON
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile    StudentProfile?
+  supervisorProfile SupervisorProfile?
+  notifications     Notification[]
+}
+
+model StudentProfile {
+  id             String @id @default(cuid())
+  userId         String @unique
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program        String
+  enrollmentYear Int
+
+  projectProfiles    ProjectProfile[]
+  supervisionRequests SupervisionRequest[]
+  workspaces         ProjectWorkspace[]   @relation("StudentWorkspaces")
+}
+
+model SupervisorProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department        String
+  expertiseAreas    String[]
+  researchInterests String[]
+  totalSlots        Int      @default(5)
+  availableSlots    Int      @default(5)
+  supervisionStyle  String   @default("FLEXIBLE")
+  bio               String   @default("")
+  profilePhoto      String?
+
+  supervisionRequests SupervisionRequest[]
+  workspaces          ProjectWorkspace[]   @relation("SupervisorWorkspaces")
+}
+
+// ─── Academic Session ─────────────────────────────────────────────────────────
+
+model AcademicSession {
+  id                 String  @id @default(cuid())
+  name               String
+  year               Int
+  semester           String
+  isActive           Boolean @default(false)
+  maxRequests        Int     @default(3)
+  requestTimeoutDays Int     @default(10)
+  reminderDays       Int     @default(7)
+  maxRevisions       Int     @default(5)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ─── WF1: Matching & Requests ─────────────────────────────────────────────────
+
+model ProjectProfile {
+  id               String   @id @default(cuid())
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title            String
+  domain           String
+  skills           String[]
+  description      String
+  supervisionStyle String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  supervisionRequests SupervisionRequest[]
+  workspace           ProjectWorkspace?
+}
+
+model SupervisionRequest {
+  id               String        @id @default(cuid())
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisorId     String
+  supervisor       SupervisorProfile @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
+  projectProfileId String
+  projectProfile   ProjectProfile @relation(fields: [projectProfileId], references: [id], onDelete: Cascade)
+  message          String
+  status           RequestStatus @default(PENDING)
+  rejectionReason  String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  messages RequestMessage[]
+}
+
+model RequestMessage {
+  id        String   @id @default(cuid())
+  requestId String
+  request   SupervisionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  senderId  String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+// ─── Project Workspace ────────────────────────────────────────────────────────
+
+model ProjectWorkspace {
+  id               String   @id @default(cuid())
+  studentId        String
+  student          StudentProfile @relation("StudentWorkspaces", fields: [studentId], references: [id], onDelete: Cascade)
+  supervisorId     String
+  supervisor       SupervisorProfile @relation("SupervisorWorkspaces", fields: [supervisorId], references: [id], onDelete: Cascade)
+  projectProfileId String   @unique
+  projectProfile   ProjectProfile @relation(fields: [projectProfileId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  proposals  Proposal[]
+  milestones Milestone[]
+  meetings   Meeting[]
+}
+
+// ─── WF2: Proposals ───────────────────────────────────────────────────────────
+
+model Proposal {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   ProjectWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  status      ProposalStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions ProposalVersion[]
+}
+
+model ProposalVersion {
+  id               String   @id @default(cuid())
+  proposalId       String
+  proposal         Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  versionNumber    String
+  title            String
+  abstract         String
+  problemStatement String
+  objectives       String
+  methodology      String
+  techStack        String
+  timeline         String
+  references       String
+  changeSummary    String?
+  isLocked         Boolean  @default(false)
+  pdfUrl           String?
+  createdAt        DateTime @default(now())
+
+  comments ProposalComment[]
+}
+
+model ProposalComment {
+  id        String   @id @default(cuid())
+  versionId String
+  version   ProposalVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  userId    String
+  section   String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+// ─── WF3: Milestones ──────────────────────────────────────────────────────────
+
+model MilestoneTemplate {
+  id         String @id @default(cuid())
+  name       String
+  createdAt  DateTime @default(now())
+
+  items MilestoneTemplateItem[]
+}
+
+model MilestoneTemplateItem {
+  id             String @id @default(cuid())
+  templateId     String
+  template       MilestoneTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  orderIndex     Int
+  submissionType String @default("FILE")
+  daysFromStart  Int
+}
+
+model Milestone {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  workspace      ProjectWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  dueDate        DateTime
+  submissionType String   @default("FILE")
+  orderIndex     Int
+  status         MilestoneStatus @default(NOT_SUBMITTED)
+  rubricId       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  submissions MilestoneSubmission[]
+  evaluation  Evaluation?
+}
+
+model MilestoneSubmission {
+  id          String   @id @default(cuid())
+  milestoneId String
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  fileUrl     String?
+  repoLink    String?
+  notes       String?
+  feedback    String?
+  submittedAt DateTime @default(now())
+}
+
+// ─── Meetings ─────────────────────────────────────────────────────────────────
+
+model Meeting {
+  id          String        @id @default(cuid())
+  workspaceId String
+  workspace   ProjectWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        String
+  agenda      String
+  mode        MeetingMode
+  meetingLink String?
+  duration    Int?
+  status      MeetingStatus @default(SCHEDULED)
+  createdAt   DateTime      @default(now())
+
+  log MeetingLog?
+}
+
+model MeetingLog {
+  id              String   @id @default(cuid())
+  meetingId       String   @unique
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  attendance      String[]
+  summary         String
+  actionItems     String
+  nextMeetingDate DateTime?
+  createdAt       DateTime @default(now())
+}
+
+// ─── Evaluation & Rubrics ─────────────────────────────────────────────────────
+
+model EvaluationRubric {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  criteria    RubricCriterion[]
+  evaluations Evaluation[]
+}
+
+model RubricCriterion {
+  id          String @id @default(cuid())
+  rubricId    String
+  rubric      EvaluationRubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  maxScore    Int
+  weight      Float
+  section     String
+
+  scores EvaluationScore[]
+}
+
+model Evaluation {
+  id          String   @id @default(cuid())
+  milestoneId String   @unique
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  rubricId    String
+  rubric      EvaluationRubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  evaluatorId String
+  totalScore  Float?
+  feedback    String?
+  isLocked    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  scores EvaluationScore[]
+}
+
+model EvaluationScore {
+  id           String @id @default(cuid())
+  evaluationId String
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterionId  String
+  criterion    RubricCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  score        Float
+  comment      String?
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  String?
+  createdAt DateTime @default(now())
+}
