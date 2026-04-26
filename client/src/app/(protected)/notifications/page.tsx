@@ -51,7 +51,7 @@ export default function NotificationsPage() {
           notifications.map((n) => (
             <Card
               key={n.id}
-              className={`cursor-pointer ${!n.read ? 'border-black' : ''}`}
+              className={`cursor-pointer ${!n.read ? 'border-primary' : ''}`}
               onClick={() => !n.read && markRead(n.id)}
             >
               <CardContent className="flex items-start justify-between py-4">

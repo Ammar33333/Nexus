@@ -54,13 +54,13 @@ interface MilestonesTabProps {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'ACCEPTED':
-      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+      return <CheckCircle2 className="h-5 w-5 text-emerald-400" />;
     case 'SUBMITTED':
-      return <Clock className="h-5 w-5 text-blue-600" />;
+      return <Clock className="h-5 w-5 text-sky-400" />;
     case 'OVERDUE':
-      return <AlertTriangle className="h-5 w-5 text-red-600" />;
+      return <AlertTriangle className="h-5 w-5 text-red-400" />;
     case 'NEEDS_CHANGES':
-      return <RefreshCw className="h-5 w-5 text-orange-600" />;
+      return <RefreshCw className="h-5 w-5 text-amber-400" />;
     default:
       return <Upload className="h-5 w-5 text-muted-foreground" />;
   }
@@ -69,11 +69,11 @@ function getStatusIcon(status: string) {
 function getStatusBadge(status: string) {
   switch (status) {
     case 'ACCEPTED':
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Accepted</Badge>;
+      return <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Accepted</Badge>;
     case 'NEEDS_CHANGES':
-      return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Needs Changes</Badge>;
+      return <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20">Needs Changes</Badge>;
     case 'SUBMITTED':
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Submitted</Badge>;
+      return <Badge className="bg-sky-500/10 text-sky-400 border-sky-500/20">Submitted</Badge>;
     case 'OVERDUE':
       return <Badge variant="destructive">Overdue</Badge>;
     default:
@@ -232,9 +232,9 @@ export default function MilestonesTab({
         <CardContent className="pt-6">
           <p className="text-xs font-medium text-muted-foreground mb-3">STATUS LABELS</p>
           <div className="flex flex-wrap gap-2">
-            <Badge className="text-xs bg-green-100 text-green-800 border-green-200">Accepted</Badge>
-            <Badge className="text-xs bg-orange-100 text-orange-800 border-orange-200">Needs Changes</Badge>
-            <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200">Submitted</Badge>
+            <Badge className="text-xs bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Accepted</Badge>
+            <Badge className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/20">Needs Changes</Badge>
+            <Badge className="text-xs bg-sky-500/10 text-sky-400 border-sky-500/20">Submitted</Badge>
             <Badge variant="outline" className="text-xs">Not Submitted</Badge>
             <Badge variant="destructive" className="text-xs">Overdue</Badge>
           </div>

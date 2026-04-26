@@ -86,6 +86,14 @@ export const getProposal = async (req: AuthRequest, res: Response, next: NextFun
       throw new AppError('Proposal not found', 404);
     }
 
+    const isStudent = proposal.workspace.student.user.id === req.user!.id;
+    const isSupervisor = proposal.workspace.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to this proposal', 403);
+    }
+
     res.json({ success: true, data: proposal });
   } catch (error) {
     next(error);
@@ -405,10 +413,31 @@ export const addComment = async (req: AuthRequest, res: Response, next: NextFunc
 
     const version = await prisma.proposalVersion.findUnique({
       where: { id: versionId },
+      include: {
+        proposal: {
+          include: {
+            workspace: {
+              include: {
+                student: { include: { user: { select: { id: true } } } },
+                supervisor: { include: { user: { select: { id: true } } } },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!version) {
       throw new AppError('Proposal version not found', 404);
+    }
+
+    const ws = version.proposal.workspace;
+    const isStudent = ws.student.user.id === req.user!.id;
+    const isSupervisor = ws.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to comment on this proposal', 403);
     }
 
     const comment = await prisma.proposalComment.create({

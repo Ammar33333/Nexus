@@ -38,6 +38,7 @@ interface MatchResult {
   researchInterests: string[];
   availableSlots: number;
   totalSlots: number;
+  isAvailable: boolean;
   totalScore: number;
   breakdown: MatchBreakdown;
 }
@@ -147,7 +148,8 @@ export default function MatchingPage() {
     <AuthGuard allowedRoles={['STUDENT']}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mb-1">Matching</p>
+          <h1 className="text-3xl font-bold tracking-tight">
             Recommended Supervisors
           </h1>
           {project && (
@@ -155,7 +157,11 @@ export default function MatchingPage() {
               Based on your project: <span className="font-medium text-foreground">{project.title}</span>
             </p>
           )}
-          <Separator className="mt-2" />
+          <Separator className="mt-3" />
+          <p className="text-sm text-muted-foreground mt-3">
+            Showing all {matches.length} supervisor{matches.length !== 1 ? 's' : ''}
+            {filteredMatches.length !== matches.length && ` (${filteredMatches.length} matching search)`}
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -185,114 +191,130 @@ export default function MatchingPage() {
           <Card>
             <CardContent className="py-12 text-center">
               <Users className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-lg font-medium">No strong matches found</p>
+              <p className="text-lg font-medium">No supervisors found</p>
               <p className="text-muted-foreground mt-1">
-                Try broadening your project domain or adjusting required skills.
+                {search ? 'Try adjusting your search terms.' : 'No supervisors are currently registered in the system.'}
               </p>
-              <Link href="/projects/new" className="inline-block mt-4">
-                <Button variant="outline">Edit Project</Button>
-              </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4">
-            {filteredMatches.map((match) => (
-              <Card key={match.supervisorProfileId}>
-                <CardContent className="pt-6">
-                  <div className="flex flex-col md:flex-row md:items-start gap-6">
-                    <div className="flex-1 space-y-3">
-                      <div>
-                        <h3 className="text-lg font-semibold">{match.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {match.department}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">
-                          Research Interests
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {match.researchInterests.map((r) => (
-                            <Badge key={r} variant="outline">
-                              {r}
+            {filteredMatches.map((match) => {
+              const isFull = !match.isAvailable;
+              return (
+                <Card key={match.supervisorProfileId} className={`transition-all duration-200 hover:border-primary/20 hover:shadow-xl hover:shadow-black/10 ${isFull ? 'opacity-75' : ''}`}>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col md:flex-row md:items-start gap-6">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start gap-2">
+                          <div>
+                            <h3 className="text-lg font-semibold">{match.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {match.department}
+                            </p>
+                          </div>
+                          {isFull && (
+                            <Badge variant="destructive" className="ml-auto md:ml-2 shrink-0">
+                              Full
                             </Badge>
-                          ))}
+                          )}
                         </div>
+
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            Research Interests
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {match.researchInterests.map((r) => (
+                              <Badge key={r} variant="outline">
+                                {r}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            Expertise Areas
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {match.expertiseAreas.map((e) => (
+                              <Badge key={e} variant="secondary">
+                                {e}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        {isFull ? (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            <Users className="h-3 w-3 mr-1" />
+                            No slots available
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <Users className="h-3 w-3 mr-1" />
+                            {match.availableSlots} slot
+                            {match.availableSlots !== 1 ? 's' : ''} available
+                          </Badge>
+                        )}
                       </div>
 
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">
-                          Expertise Areas
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {match.expertiseAreas.map((e) => (
-                            <Badge key={e} variant="secondary">
-                              {e}
-                            </Badge>
-                          ))}
+                      <div className="md:text-right space-y-3 md:min-w-[160px]">
+                        <div>
+                          <p className={`text-3xl font-bold tabular-nums ${match.totalScore >= 50 ? 'text-primary' : ''}`}>
+                            {Math.round(match.totalScore)}%
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Match Score
+                          </p>
                         </div>
-                      </div>
-
-                      <Badge variant="outline">
-                        <Users className="h-3 w-3 mr-1" />
-                        {match.availableSlots} slot
-                        {match.availableSlots !== 1 ? 's' : ''} available
-                      </Badge>
-                    </div>
-
-                    <div className="md:text-right space-y-3 md:min-w-[160px]">
-                      <div>
-                        <p className="text-3xl font-bold">
-                          {Math.round(match.totalScore)}%
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Match Score
-                        </p>
-                      </div>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">Domain</span>
-                          <span className="font-medium">
-                            {Math.round(match.breakdown.domainAlignment)}%
-                          </span>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">Domain</span>
+                            <span className="font-medium tabular-nums">
+                              {Math.round(match.breakdown.domainAlignment)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">Skills</span>
+                            <span className="font-medium tabular-nums">
+                              {Math.round(match.breakdown.skillOverlap)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">
+                              Availability
+                            </span>
+                            <span className="font-medium tabular-nums">
+                              {Math.round(match.breakdown.availability)}%
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">Skills</span>
-                          <span className="font-medium">
-                            {Math.round(match.breakdown.skillOverlap)}%
-                          </span>
-                        </div>
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">
-                            Availability
-                          </span>
-                          <span className="font-medium">
-                            {Math.round(match.breakdown.availability)}%
-                          </span>
-                        </div>
-                      </div>
-                      <Separator className="md:hidden" />
-                      <div className="flex gap-2 md:justify-end">
-                        <Link
-                          href={`/supervisors/${match.supervisorId}?projectId=${projectId}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            View Profile
+                        <Separator className="md:hidden" />
+                        <div className="flex gap-2 md:justify-end">
+                          <Link
+                            href={`/supervisors/${match.supervisorId}?projectId=${projectId}`}
+                          >
+                            <Button variant="outline" size="sm">
+                              View Profile
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            onClick={() => openRequestDialog(match)}
+                            disabled={isFull}
+                            title={isFull ? 'This supervisor has no available slots' : undefined}
+                          >
+                            Request Supervisor
                           </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          onClick={() => openRequestDialog(match)}
-                        >
-                          Request Supervisor
-                        </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 

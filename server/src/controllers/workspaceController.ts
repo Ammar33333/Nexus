@@ -33,6 +33,14 @@ export const getWorkspace = async (req: AuthRequest, res: Response, next: NextFu
       throw new AppError('Workspace not found', 404);
     }
 
+    const isStudent = workspace.student.user.id === req.user!.id;
+    const isSupervisor = workspace.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to this workspace', 403);
+    }
+
     res.json({ success: true, data: workspace });
   } catch (error) {
     next(error);

@@ -47,9 +47,23 @@ export const getMilestones = async (req: AuthRequest, res: Response, next: NextF
   try {
     const workspaceId = req.params.workspaceId as string;
 
-    const workspace = await prisma.projectWorkspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.projectWorkspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        student: { include: { user: { select: { id: true } } } },
+        supervisor: { include: { user: { select: { id: true } } } },
+      },
+    });
     if (!workspace) {
       throw new AppError('Workspace not found', 404);
+    }
+
+    const isStudent = workspace.student.user.id === req.user!.id;
+    const isSupervisor = workspace.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to this workspace', 403);
     }
 
     const milestones = await prisma.milestone.findMany({
@@ -74,9 +88,16 @@ export const createMilestone = async (req: AuthRequest, res: Response, next: Nex
     const workspaceId = req.params.workspaceId as string;
     const { title, description, dueDate, submissionType, orderIndex, rubricId } = req.body;
 
-    const workspace = await prisma.projectWorkspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.projectWorkspace.findUnique({
+      where: { id: workspaceId },
+      include: { supervisor: { include: { user: { select: { id: true } } } } },
+    });
     if (!workspace) {
       throw new AppError('Workspace not found', 404);
+    }
+
+    if (req.user!.role !== 'ADMIN' && workspace.supervisor.user.id !== req.user!.id) {
+      throw new AppError('Only the assigned supervisor or an admin can create milestones', 403);
     }
 
     const milestone = await prisma.milestone.create({
@@ -102,9 +123,16 @@ export const applyTemplate = async (req: AuthRequest, res: Response, next: NextF
     const workspaceId = req.params.workspaceId as string;
     const { templateId } = req.body;
 
-    const workspace = await prisma.projectWorkspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.projectWorkspace.findUnique({
+      where: { id: workspaceId },
+      include: { supervisor: { include: { user: { select: { id: true } } } } },
+    });
     if (!workspace) {
       throw new AppError('Workspace not found', 404);
+    }
+
+    if (req.user!.role !== 'ADMIN' && workspace.supervisor.user.id !== req.user!.id) {
+      throw new AppError('Only the assigned supervisor or an admin can apply templates', 403);
     }
 
     const template = await prisma.milestoneTemplate.findUnique({
@@ -146,9 +174,20 @@ export const updateMilestone = async (req: AuthRequest, res: Response, next: Nex
     const id = req.params.id as string;
     const { title, description, dueDate, submissionType, orderIndex, rubricId, status } = req.body;
 
-    const milestone = await prisma.milestone.findUnique({ where: { id } });
+    const milestone = await prisma.milestone.findUnique({
+      where: { id },
+      include: {
+        workspace: {
+          include: { supervisor: { include: { user: { select: { id: true } } } } },
+        },
+      },
+    });
     if (!milestone) {
       throw new AppError('Milestone not found', 404);
+    }
+
+    if (req.user!.role !== 'ADMIN' && milestone.workspace.supervisor.user.id !== req.user!.id) {
+      throw new AppError('Only the assigned supervisor or an admin can update milestones', 403);
     }
 
     const updated = await prisma.milestone.update({

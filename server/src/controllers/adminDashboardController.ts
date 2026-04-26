@@ -107,11 +107,17 @@ export const lockGrades = async (req: AuthRequest, res: Response, next: NextFunc
   try {
     const { sessionId } = req.body;
 
-    let workspaceFilter = {};
+    let workspaceFilter: { sessionId?: string } = {};
     if (sessionId) {
       const session = await prisma.academicSession.findUnique({ where: { id: sessionId } });
       if (!session) {
         throw new AppError('Session not found', 404);
+      }
+      workspaceFilter = { sessionId };
+    } else {
+      const activeSession = await prisma.academicSession.findFirst({ where: { isActive: true } });
+      if (activeSession) {
+        workspaceFilter = { sessionId: activeSession.id };
       }
     }
 

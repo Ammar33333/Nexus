@@ -17,26 +17,36 @@ export const getSession = async (_req: AuthRequest, res: Response, next: NextFun
 
 export const updateSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { name, year, semester, isActive } = req.body;
-
-    if (isActive) {
-      await prisma.academicSession.updateMany({
-        where: { isActive: true },
-        data: { isActive: false },
-      });
-    }
-
-    const existing = await prisma.academicSession.findFirst({
-      where: { isActive: true },
-    });
+    const { id, name, year, semester, isActive } = req.body;
 
     let session;
-    if (existing) {
-      session = await prisma.academicSession.update({
-        where: { id: existing.id },
-        data: { name, year, semester, isActive },
-      });
+
+    if (id) {
+      if (isActive) {
+        await prisma.$transaction([
+          prisma.academicSession.updateMany({
+            where: { isActive: true },
+            data: { isActive: false },
+          }),
+          prisma.academicSession.update({
+            where: { id },
+            data: { name, year, semester, isActive },
+          }),
+        ]);
+        session = await prisma.academicSession.findUnique({ where: { id } });
+      } else {
+        session = await prisma.academicSession.update({
+          where: { id },
+          data: { name, year, semester, isActive },
+        });
+      }
     } else {
+      if (isActive) {
+        await prisma.academicSession.updateMany({
+          where: { isActive: true },
+          data: { isActive: false },
+        });
+      }
       session = await prisma.academicSession.create({
         data: {
           name: name || `${year} ${semester}`,

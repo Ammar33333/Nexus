@@ -196,7 +196,7 @@ export default function ReviseProposalPage() {
         </div>
 
         {Object.keys(commentsBySection).length > 0 && (
-          <Card className="border-orange-200 bg-orange-50/50">
+          <Card className="border-amber-500/30 bg-amber-500/10">
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default function ReviseProposalPage() {
                     {comments.map((c) => (
                       <div
                         key={c.id}
-                        className="border rounded p-3 bg-white text-sm"
+                        className="border rounded p-3 bg-muted/50 text-sm"
                       >
                         <p>{c.content}</p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -245,7 +245,7 @@ export default function ReviseProposalPage() {
                   <Label htmlFor={field.key} className="flex items-center gap-2">
                     {field.label}
                     {hasFeedback && (
-                      <span className="text-xs text-orange-600 font-normal">
+                      <span className="text-xs text-amber-400 font-normal">
                         Has feedback
                       </span>
                     )}
@@ -255,7 +255,7 @@ export default function ReviseProposalPage() {
                       id={field.key}
                       value={form[field.key]}
                       onChange={(e) => updateField(field.key, e.target.value)}
-                      className={hasFeedback ? 'border-orange-300 focus-visible:ring-orange-200' : ''}
+                      className={hasFeedback ? 'border-amber-500/40 focus-visible:ring-amber-500/30' : ''}
                     />
                   ) : (
                     <Textarea
@@ -263,7 +263,7 @@ export default function ReviseProposalPage() {
                       value={form[field.key]}
                       onChange={(e) => updateField(field.key, e.target.value)}
                       rows={field.rows}
-                      className={hasFeedback ? 'border-orange-300 focus-visible:ring-orange-200' : ''}
+                      className={hasFeedback ? 'border-amber-500/40 focus-visible:ring-amber-500/30' : ''}
                     />
                   )}
                 </div>

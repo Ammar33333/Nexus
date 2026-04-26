@@ -51,6 +51,10 @@ app.use('/api', meetingRoutes);
 app.use('/api', evaluationRoutes);
 app.use('/api/admin', adminDashboardRoutes);
 
+app.use('/api/*', (_req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
+});
+
 app.use(errorHandler);
 
 app.listen(PORT, () => {

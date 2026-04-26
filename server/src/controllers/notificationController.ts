@@ -24,8 +24,16 @@ export const markAsRead = async (req: AuthRequest, res: Response, next: NextFunc
   try {
     const id = req.params.id as string;
 
-    await prisma.notification.update({
+    const notification = await prisma.notification.findFirst({
       where: { id, userId: req.user!.id },
+    });
+
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+
+    await prisma.notification.update({
+      where: { id: notification.id },
       data: { read: true },
     });
 

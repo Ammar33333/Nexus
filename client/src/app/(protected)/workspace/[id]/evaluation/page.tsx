@@ -110,9 +110,9 @@ export default function EvaluationPage() {
       </div>
 
       {evaluation.completed && (
-        <Card className="border-green-200 bg-green-50/50">
+        <Card className="border-emerald-500/30 bg-emerald-500/10">
           <CardContent className="py-6 text-center">
-            <CheckCircle2 className="mx-auto h-8 w-8 text-green-600 mb-2" />
+            <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400 mb-2" />
             <p className="text-lg font-semibold">Congratulations!</p>
             <p className="text-sm text-muted-foreground">
               Your project evaluation has been completed.
@@ -195,7 +195,7 @@ export default function EvaluationPage() {
                       </div>
                       <div className="h-2 w-full rounded-full bg-muted">
                         <div
-                          className="h-2 rounded-full bg-foreground transition-all"
+                          className="h-2 rounded-full bg-primary transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

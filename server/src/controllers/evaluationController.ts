@@ -150,6 +150,15 @@ export const getEvaluation = async (req: AuthRequest, res: Response, next: NextF
       throw new AppError('Evaluation not found', 404);
     }
 
+    const ws = evaluation.milestone.workspace;
+    const isStudent = ws.student.user.id === req.user!.id;
+    const isSupervisor = ws.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to this evaluation', 403);
+    }
+
     res.json({ success: true, data: evaluation });
   } catch (error) {
     next(error);
@@ -160,9 +169,23 @@ export const getWorkspaceEvaluations = async (req: AuthRequest, res: Response, n
   try {
     const workspaceId = req.params.workspaceId as string;
 
-    const workspace = await prisma.projectWorkspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.projectWorkspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        student: { include: { user: { select: { id: true } } } },
+        supervisor: { include: { user: { select: { id: true } } } },
+      },
+    });
     if (!workspace) {
       throw new AppError('Workspace not found', 404);
+    }
+
+    const isStudent = workspace.student.user.id === req.user!.id;
+    const isSupervisor = workspace.supervisor.user.id === req.user!.id;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isStudent && !isSupervisor && !isAdmin) {
+      throw new AppError('You do not have access to this workspace', 403);
     }
 
     const milestones = await prisma.milestone.findMany({

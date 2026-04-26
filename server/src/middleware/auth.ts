@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
+import prisma from '../utils/prisma';
 import { AppError } from './errorHandler';
-
-const prisma = new PrismaClient();
 
 export interface AuthRequest extends Request {
   user?: {

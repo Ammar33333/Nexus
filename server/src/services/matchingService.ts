@@ -10,6 +10,7 @@ interface MatchScore {
   supervisionStyle: string;
   availableSlots: number;
   totalSlots: number;
+  isAvailable: boolean;
   totalScore: number;
   breakdown: {
     domainAlignment: number;
@@ -74,7 +75,6 @@ export async function runMatching(projectProfileId: string): Promise<MatchScore[
   }
 
   const supervisors = await prisma.supervisorProfile.findMany({
-    where: { availableSlots: { gt: 0 } },
     include: { user: { select: { id: true, name: true } } },
   });
 
@@ -87,10 +87,12 @@ export async function runMatching(projectProfileId: string): Promise<MatchScore[
 
     const domainAlignment = keywordMatch(project.domain, sup.researchInterests) * 100;
     const skillOverlap = arrayOverlap(project.skills, sup.expertiseAreas) * 100;
-    const availability = (sup.availableSlots / sup.totalSlots) * 100;
+    const availability = sup.totalSlots > 0
+      ? (sup.availableSlots / sup.totalSlots) * 100
+      : 0;
     const maxStudents = sup.totalSlots;
     const workloadBalance = maxStudents > 0
-      ? ((maxStudents - workspaceCount) / maxStudents) * 100
+      ? (Math.max(0, maxStudents - workspaceCount) / maxStudents) * 100
       : 0;
     const supervisionStyleMatch = styleScore(project.supervisionStyle, sup.supervisionStyle) * 100;
 
@@ -111,6 +113,7 @@ export async function runMatching(projectProfileId: string): Promise<MatchScore[
       supervisionStyle: sup.supervisionStyle,
       availableSlots: sup.availableSlots,
       totalSlots: sup.totalSlots,
+      isAvailable: sup.availableSlots > 0,
       totalScore: Math.round(totalScore * 100) / 100,
       breakdown: {
         domainAlignment: Math.round(domainAlignment * 100) / 100,

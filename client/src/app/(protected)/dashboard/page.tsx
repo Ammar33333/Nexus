@@ -107,10 +107,11 @@ export default function StudentDashboard() {
     <AuthGuard allowedRoles={['STUDENT']}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mb-1">Overview</p>
+          <h1 className="text-3xl font-bold tracking-tight">
             Student Dashboard
           </h1>
-          <Separator className="mt-2" />
+          <Separator className="mt-3" />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -198,7 +199,7 @@ export default function StudentDashboard() {
                       return (
                         <div
                           key={project.id}
-                          className="border rounded-lg p-4 space-y-3"
+                          className="border border-border/50 rounded-lg p-4 space-y-3 transition-all duration-200 hover:border-primary/20 hover:shadow-lg hover:shadow-black/10"
                         >
                           <div className="flex items-start justify-between">
                             <div>
@@ -268,7 +269,7 @@ export default function StudentDashboard() {
                     {pendingRequests.slice(0, 5).map((req) => (
                       <div
                         key={req.id}
-                        className="flex items-center justify-between border rounded p-3"
+                        className="flex items-center justify-between border border-border/50 rounded-lg p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-lg hover:shadow-black/10"
                       >
                         <div>
                           <p className="text-sm font-medium">
@@ -312,7 +313,7 @@ export default function StudentDashboard() {
                   </p>
                 ) : (
                   notifications.map((n) => (
-                    <div key={n.id} className="border rounded p-3">
+                    <div key={n.id} className="border border-border/50 rounded-lg p-3 transition-all duration-200 hover:border-primary/20">
                       <p className="text-sm">{n.message}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {timeAgo(n.createdAt)}

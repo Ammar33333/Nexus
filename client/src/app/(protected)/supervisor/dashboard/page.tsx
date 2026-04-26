@@ -54,8 +54,9 @@ export default function SupervisorDashboard() {
     <AuthGuard allowedRoles={['SUPERVISOR']}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono">Supervisor Dashboard</h1>
-          <Separator className="mt-2" />
+          <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mb-1">Overview</p>
+          <h1 className="text-3xl font-bold tracking-tight">Supervisor Dashboard</h1>
+          <Separator className="mt-3" />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -67,7 +68,7 @@ export default function SupervisorDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.pendingRequests}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.pendingRequests}</p>
               <p className="text-muted-foreground text-sm">Awaiting your response</p>
             </CardContent>
           </Card>
@@ -79,7 +80,7 @@ export default function SupervisorDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.currentStudents}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.currentStudents}</p>
               <p className="text-muted-foreground text-sm">Active supervisees</p>
             </CardContent>
           </Card>
@@ -91,7 +92,7 @@ export default function SupervisorDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.availableSlots}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.availableSlots}</p>
               <p className="text-muted-foreground text-sm">Open for new students</p>
             </CardContent>
           </Card>
@@ -130,7 +131,7 @@ export default function SupervisorDashboard() {
                 {stats.workspaces.map((ws) => (
                   <div
                     key={ws.id}
-                    className="flex items-center justify-between border rounded p-3"
+                    className="flex items-center justify-between border border-border/50 rounded-lg p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-lg hover:shadow-black/10"
                   >
                     <div>
                       <p className="text-sm font-medium">{ws.student.user.name}</p>

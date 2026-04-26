@@ -50,7 +50,7 @@ export default function AdminTemplatesPage() {
 
   const fetchTemplates = () => {
     api
-      .get('/admin/templates')
+      .get('/admin/milestone-templates')
       .then((res) => setTemplates(res.data.data || []))
       .catch(() => toast.error('Failed to load templates'))
       .finally(() => setLoading(false));
@@ -91,7 +91,7 @@ export default function AdminTemplatesPage() {
 
     setCreating(true);
     try {
-      await api.post('/admin/templates', {
+      await api.post('/admin/milestone-templates', {
         name: newName,
         items: newItems,
       });

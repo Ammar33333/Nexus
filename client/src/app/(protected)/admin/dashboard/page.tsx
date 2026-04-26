@@ -29,19 +29,16 @@ interface DashboardData {
     overdue: number;
   };
   supervisorWorkload: {
-    id: string;
+    supervisorId: string;
     name: string;
-    currentStudents: number;
+    workspaceCount: number;
     availableSlots: number;
   }[];
   evaluationCompletion: {
     completed: number;
     total: number;
   };
-  gradeDistribution: {
-    range: string;
-    count: number;
-  }[];
+  gradeDistribution: Record<string, number> | { range: string; count: number }[];
 }
 
 export default function AdminDashboard() {
@@ -84,26 +81,34 @@ export default function AdminDashboard() {
     }
   };
 
-  const stats = data || {
-    totalStudents: 0,
-    totalSupervisors: 0,
-    activeProjects: 0,
-    pendingProposals: 0,
-    projectProgress: { onTrack: 0, atRisk: 0, overdue: 0 },
-    supervisorWorkload: [],
-    evaluationCompletion: { completed: 0, total: 0 },
-    gradeDistribution: [],
+  const stats = {
+    totalStudents: data?.totalStudents ?? 0,
+    totalSupervisors: data?.totalSupervisors ?? 0,
+    activeProjects: data?.activeProjects ?? 0,
+    pendingProposals: data?.pendingProposals ?? 0,
+    projectProgress: data?.projectProgress ?? { onTrack: 0, atRisk: 0, overdue: 0 },
+    supervisorWorkload: Array.isArray(data?.supervisorWorkload) ? data.supervisorWorkload : [],
+    evaluationCompletion: data?.evaluationCompletion ?? { completed: 0, total: 0 },
+    gradeDistribution: (() => {
+      const gd = data?.gradeDistribution;
+      if (Array.isArray(gd)) return gd;
+      if (gd && typeof gd === 'object') {
+        return Object.entries(gd).map(([range, count]) => ({ range, count: count as number }));
+      }
+      return [];
+    })(),
   };
 
-  const maxGradeCount = Math.max(...(stats.gradeDistribution.map((g) => g.count) || [1]), 1);
+  const maxGradeCount = Math.max(...stats.gradeDistribution.map((g) => g.count), 1);
 
   return (
     <AuthGuard allowedRoles={['ADMIN']}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight font-mono">Admin Dashboard</h1>
-            <Separator className="mt-2" />
+            <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mb-1">Administration</p>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <Separator className="mt-3" />
           </div>
           <div className="flex gap-2">
             <Button
@@ -131,7 +136,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.totalStudents}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.totalStudents}</p>
             </CardContent>
           </Card>
           <Card>
@@ -142,7 +147,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.totalSupervisors}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.totalSupervisors}</p>
             </CardContent>
           </Card>
           <Card>
@@ -153,7 +158,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.activeProjects}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.activeProjects}</p>
             </CardContent>
           </Card>
           <Card>
@@ -164,7 +169,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-4">
-              <p className="text-3xl font-bold">{stats.pendingProposals}</p>
+              <p className="text-3xl font-bold tabular-nums">{stats.pendingProposals}</p>
             </CardContent>
           </Card>
         </div>
@@ -182,13 +187,13 @@ export default function AdminDashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">On Track</span>
-                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                       {stats.projectProgress.onTrack}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">At Risk</span>
-                    <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                    <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20">
                       {stats.projectProgress.atRisk}
                     </Badge>
                   </div>
@@ -214,7 +219,7 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-3">
                   <div className="text-center">
-                    <p className="text-4xl font-bold font-mono">
+                    <p className="text-4xl font-bold tabular-nums">
                       {stats.evaluationCompletion.completed}
                       <span className="text-lg text-muted-foreground">
                         /{stats.evaluationCompletion.total}
@@ -224,7 +229,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="h-2 w-full rounded-full bg-muted">
                     <div
-                      className="h-2 rounded-full bg-foreground transition-all"
+                      className="h-2 rounded-full bg-primary transition-all"
                       style={{
                         width: `${stats.evaluationCompletion.total > 0 ? Math.round((stats.evaluationCompletion.completed / stats.evaluationCompletion.total) * 100) : 0}%`,
                       }}
@@ -253,9 +258,9 @@ export default function AdminDashboard() {
                 </TableHeader>
                 <TableBody>
                   {stats.supervisorWorkload.map((supervisor) => (
-                    <TableRow key={supervisor.id}>
+                    <TableRow key={supervisor.supervisorId}>
                       <TableCell className="font-medium">{supervisor.name}</TableCell>
-                      <TableCell>{supervisor.currentStudents}</TableCell>
+                      <TableCell>{supervisor.workspaceCount}</TableCell>
                       <TableCell>
                         <Badge variant={supervisor.availableSlots > 0 ? 'secondary' : 'outline'}>
                           {supervisor.availableSlots}
@@ -279,9 +284,9 @@ export default function AdminDashboard() {
               <div className="flex items-end gap-2 h-40">
                 {stats.gradeDistribution.map((grade) => (
                   <div key={grade.range} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs font-medium">{grade.count}</span>
+                    <span className="text-xs font-medium tabular-nums">{grade.count}</span>
                     <div
-                      className="w-full bg-foreground rounded-t"
+                      className="w-full bg-gradient-to-t from-primary to-emerald-400 rounded-t"
                       style={{
                         height: `${Math.max((grade.count / maxGradeCount) * 100, 4)}%`,
                       }}

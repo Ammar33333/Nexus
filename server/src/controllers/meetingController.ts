@@ -21,6 +21,12 @@ export const scheduleMeeting = async (req: AuthRequest, res: Response, next: Nex
       throw new AppError('Workspace not found', 404);
     }
 
+    const isStudent = workspace.student.user.id === req.user!.id;
+    const isSupervisor = workspace.supervisor.user.id === req.user!.id;
+    if (!isStudent && !isSupervisor && req.user!.role !== 'ADMIN') {
+      throw new AppError('You do not have access to this workspace', 403);
+    }
+
     const meeting = await prisma.meeting.create({
       data: {
         workspaceId,
@@ -56,9 +62,21 @@ export const getMeetings = async (req: AuthRequest, res: Response, next: NextFun
   try {
     const workspaceId = req.params.workspaceId as string;
 
-    const workspace = await prisma.projectWorkspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.projectWorkspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        student: { include: { user: { select: { id: true } } } },
+        supervisor: { include: { user: { select: { id: true } } } },
+      },
+    });
     if (!workspace) {
       throw new AppError('Workspace not found', 404);
+    }
+
+    const isStudent = workspace.student.user.id === req.user!.id;
+    const isSupervisor = workspace.supervisor.user.id === req.user!.id;
+    if (!isStudent && !isSupervisor && req.user!.role !== 'ADMIN') {
+      throw new AppError('You do not have access to this workspace', 403);
     }
 
     const meetings = await prisma.meeting.findMany({
@@ -96,6 +114,12 @@ export const updateMeeting = async (req: AuthRequest, res: Response, next: NextF
 
     if (!meeting) {
       throw new AppError('Meeting not found', 404);
+    }
+
+    const isStudent = meeting.workspace.student.user.id === req.user!.id;
+    const isSupervisor = meeting.workspace.supervisor.user.id === req.user!.id;
+    if (!isStudent && !isSupervisor && req.user!.role !== 'ADMIN') {
+      throw new AppError('You do not have access to update this meeting', 403);
     }
 
     const updated = await prisma.meeting.update({

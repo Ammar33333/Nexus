@@ -140,13 +140,14 @@ export default function WorkspacePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-mono">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mb-1">Project Workspace</p>
+        <h1 className="text-3xl font-bold tracking-tight">
           {workspace.projectProfile.title}
         </h1>
         <p className="text-muted-foreground mt-1">
           Supervisor: {workspace.supervisor.user.name}
         </p>
-        <Separator className="mt-2" />
+        <Separator className="mt-3" />
       </div>
 
       <Tabs defaultValue={0}>
@@ -232,7 +233,7 @@ export default function WorkspacePage() {
                 </Card>
 
                 {needsRevision && (
-                  <Card className="border-orange-200 bg-orange-50/50">
+                  <Card className="border-amber-500/30 bg-amber-500/10">
                     <CardHeader>
                       <CardTitle className="text-sm">
                         Revisions Requested
@@ -272,7 +273,7 @@ export default function WorkspacePage() {
                         return (
                           <div
                             key={version.id}
-                            className="flex items-center justify-between border rounded p-3"
+                            className="flex items-center justify-between border border-border/50 rounded-lg p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-lg hover:shadow-black/10"
                           >
                             <div>
                               <p className="text-sm font-medium">

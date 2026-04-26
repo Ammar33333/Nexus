@@ -10,6 +10,10 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { name, email, password, role, program, enrollmentYear, department } = req.body;
 
+    if (role === 'ADMIN') {
+      throw new AppError('Admin registration is not allowed', 403);
+    }
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new AppError('Email already registered', 409);

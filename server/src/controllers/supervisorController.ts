@@ -35,16 +35,26 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
       bio,
     } = req.body;
 
+    let slotUpdate = {};
+    if (totalSlots !== undefined) {
+      const current = await prisma.supervisorProfile.findUnique({
+        where: { userId: req.user!.id },
+        select: { totalSlots: true, availableSlots: true },
+      });
+      if (current) {
+        const usedSlots = current.totalSlots - current.availableSlots;
+        const newAvailable = Math.max(0, totalSlots - usedSlots);
+        slotUpdate = { totalSlots, availableSlots: newAvailable };
+      }
+    }
+
     const profile = await prisma.supervisorProfile.update({
       where: { userId: req.user!.id },
       data: {
         ...(department !== undefined && { department }),
         ...(expertiseAreas !== undefined && { expertiseAreas }),
         ...(researchInterests !== undefined && { researchInterests }),
-        ...(totalSlots !== undefined && {
-          totalSlots,
-          availableSlots: totalSlots,
-        }),
+        ...slotUpdate,
         ...(supervisionStyle !== undefined && { supervisionStyle }),
         ...(bio !== undefined && { bio }),
       },

@@ -82,6 +82,18 @@ export const getProject = async (req: AuthRequest, res: Response, next: NextFunc
       throw new AppError('Project not found', 404);
     }
 
+    const isOwner = project.student.user.id === req.user!.id;
+    const isSupervisorOfProject = project.workspace?.id
+      ? await prisma.projectWorkspace.findFirst({
+          where: { projectProfileId: project.id, supervisor: { userId: req.user!.id } },
+        })
+      : null;
+    const isAdmin = req.user!.role === 'ADMIN';
+
+    if (!isOwner && !isSupervisorOfProject && !isAdmin) {
+      throw new AppError('You do not have access to this project', 403);
+    }
+
     res.json({ success: true, data: project });
   } catch (error) {
     next(error);
