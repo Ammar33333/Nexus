@@ -59,7 +59,9 @@ export const reviewSubmissionSchema = z.object({
 // ─── Meetings ────────────────────────────────────────────────────────────────
 
 export const scheduleMeetingSchema = z.object({
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), 'Invalid date format'),
+  date: z.string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid date format')
+    .refine((val) => new Date(val).setHours(23, 59, 59) >= Date.now(), 'Meeting date must be in the future'),
   time: z.string().min(1, 'Time is required'),
   agenda: z.string().min(3, 'Agenda must be at least 3 characters'),
   mode: z.enum(['ONLINE', 'IN_PERSON']),

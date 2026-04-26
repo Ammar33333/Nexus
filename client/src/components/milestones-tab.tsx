@@ -94,6 +94,7 @@ export default function MilestonesTab({
   milestones,
   onRefresh,
 }: MilestonesTabProps) {
+  const safeMilestones = Array.isArray(milestones) ? milestones : [];
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -133,7 +134,7 @@ export default function MilestonesTab({
     }
   };
 
-  if (milestones.length === 0) {
+  if (safeMilestones.length === 0) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
@@ -152,7 +153,7 @@ export default function MilestonesTab({
       <h2 className="text-xl font-semibold tracking-tight">Project Milestones</h2>
 
       <div className="space-y-4">
-        {milestones.map((milestone) => (
+        {safeMilestones.map((milestone) => (
           <Card key={milestone.id}>
             <CardHeader>
               <div className="flex items-start justify-between gap-4">

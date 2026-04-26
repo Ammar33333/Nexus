@@ -87,12 +87,21 @@ export default function MeetingsTab({
   const [meetingLink, setMeetingLink] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const upcoming = meetings.filter((m) => m.status === 'UPCOMING' || m.status === 'SCHEDULED');
-  const past = meetings.filter((m) => m.status === 'COMPLETED' || m.status === 'PAST');
+  const safeMeetings = Array.isArray(meetings) ? meetings : [];
+  const upcoming = safeMeetings.filter((m) => m.status === 'UPCOMING' || m.status === 'SCHEDULED');
+  const past = safeMeetings.filter((m) => m.status === 'COMPLETED' || m.status === 'PAST');
+
+  const today = new Date().toISOString().split('T')[0];
 
   const handleSchedule = async () => {
     if (!date || !agenda) {
       toast.error('Please fill in the date and agenda');
+      return;
+    }
+
+    const selectedDateTime = new Date(`${date}T${time || '23:59'}`);
+    if (selectedDateTime <= new Date()) {
+      toast.error('Meeting must be scheduled in the future');
       return;
     }
 
@@ -246,6 +255,7 @@ export default function MeetingsTab({
               <Input
                 type="date"
                 value={date}
+                min={today}
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>

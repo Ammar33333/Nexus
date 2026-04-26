@@ -88,14 +88,14 @@ export default function WorkspacePage() {
   const fetchMilestones = useCallback(() => {
     api
       .get(`/workspaces/${workspaceId}/milestones`)
-      .then((res) => setMilestones(res.data.data || []))
+      .then((res) => setMilestones(Array.isArray(res.data.data) ? res.data.data : []))
       .catch(() => {});
   }, [workspaceId]);
 
   const fetchMeetings = useCallback(() => {
     api
       .get(`/workspaces/${workspaceId}/meetings`)
-      .then((res) => setMeetings(res.data.data || []))
+      .then((res) => setMeetings(Array.isArray(res.data.data) ? res.data.data : []))
       .catch(() => {});
   }, [workspaceId]);
 
@@ -107,8 +107,8 @@ export default function WorkspacePage() {
     ])
       .then(([wsRes, msRes, mtRes]) => {
         setWorkspace(wsRes.data.data);
-        setMilestones(msRes.data.data || []);
-        setMeetings(mtRes.data.data || []);
+        setMilestones(Array.isArray(msRes.data.data) ? msRes.data.data : []);
+        setMeetings(Array.isArray(mtRes.data.data) ? mtRes.data.data : []);
       })
       .catch(() => toast.error('Failed to load workspace'))
       .finally(() => setLoading(false));
