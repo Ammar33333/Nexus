@@ -65,8 +65,14 @@ This brings up three containers:
 Once the containers are running, open a second terminal:
 
 ```bash
-docker-compose exec server npx prisma migrate dev --name init
+docker-compose exec server npx prisma migrate deploy
 docker-compose exec server npx prisma db seed
+```
+
+For a **clean** database (drops all data, reapplies migrations, runs seed + demo data):
+
+```bash
+docker-compose exec server npx prisma migrate reset --force
 ```
 
 ### 5. Verify
@@ -94,15 +100,27 @@ npm run dev
 
 ## Test Accounts (after seeding)
 
-| Role       | Email                          | Password      |
-|------------|--------------------------------|---------------|
-| Admin      | `admin@nexus.edu`              | `password123` |
-| Student    | `student@university.edu`       | `password123` |
-| Supervisor | `sarah.johnson@university.edu` | `password123` |
-| Supervisor | `michael.chen@university.edu`  | `password123` |
-| Supervisor | `emily.martinez@university.edu`| `password123` |
-| Supervisor | `james.wilson@university.edu`  | `password123` |
-| Supervisor | `lisa.park@university.edu`     | `password123` |
+| Role | Email | Password | Notes |
+|------|-------|------------|-------|
+| Admin | `admin@nexus.edu` | `password123` | Session, settings, proposal queue, admin dashboard |
+| Student (baseline) | `student@university.edu` | `password123` | Empty slate for ad-hoc testing |
+| **Demo — Workflow 1** | `demo.wf1@nexus.edu` | `password123` | **Alex Chen** — project *Explainable AI for Medical Diagnosis*; 1 pending + 1 rejected request; use **Find Supervisors** on dashboard |
+| **Demo — Workflows 2 & 3** | `demo.wf23@nexus.edu` | `password123` | **Jordan Rivera** — matched with Dr. Sarah Johnson; admin-approved proposal (v1.0 / v1.1 + comment); milestones (accepted / submitted / open / overdue); meetings + log; rubric evaluation on first milestone |
+| Supervisor (ML) | `sarah.johnson@university.edu` | `password123` | Pending request from Alex; full workspace with Jordan |
+| Supervisor (Web) | `michael.chen@university.edu` | `password123` | Declined Alex’s request (seeded) |
+| Supervisor | `emily.martinez@university.edu` | `password123` | |
+| Supervisor | `james.wilson@university.edu` | `password123` | |
+| Supervisor | `lisa.park@university.edu` | `password123` | |
+
+**Suggested demo order:** Admin (settings) → `demo.wf1@nexus.edu` (matching + requests) → `sarah.johnson@university.edu` (accept pending) → `demo.wf23@nexus.edu` (workspace: proposals, milestones, meetings) → Admin (dashboard). Full script: [DEMO.md](DEMO.md).
+
+### Re-seed demo data (destructive)
+
+Wipes the database and reapplies migrations + seed (including demo personas):
+
+```bash
+docker-compose exec server npx prisma migrate reset --force
+```
 
 ## Project Structure
 
